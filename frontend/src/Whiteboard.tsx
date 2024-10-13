@@ -64,6 +64,8 @@ export default function Whiteboard() {
         //     })
         // )
 
+        console.log(JSON.stringify(obj))
+
         const url = 'http://127.0.0.1:8000/brainstorm'
         await fetch(url, {
             method: 'POST',
@@ -162,14 +164,14 @@ export default function Whiteboard() {
                 body: formData
             });
             if (response.ok){
-                response.json().then(value => console.log(value))
+                response.json().then(value => 
                 setElements([...elements, {
-                    type: 'audio',
-                    content: blob,
+                    type: 'text',
+                    content: value.output,
                     x: (Math.random()*(rect.width*0.8))+(rect.width*.1),
-                    y: (Math.random()*(rect.height*.6))+(rect.height*.1),
+                    y: (Math.random()*(rect.height*.6))+(rect.height*.1) + 20,
                     id: Date.now().toString()
-                }])
+                }]))
                 // console.log(response.json)
             }
             else{
@@ -178,7 +180,7 @@ export default function Whiteboard() {
             
         } catch(error) {
             console.error();
-        }
+        } 
 
         //convert blob to wav
     }
