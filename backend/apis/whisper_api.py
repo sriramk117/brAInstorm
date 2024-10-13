@@ -36,10 +36,12 @@ def init_model():
     pt_model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id)
 
 def convert_wav_to_array(wav_path):
-    y, sr = librosa.load(wav_path, sr=16000)
+    print("WAV PATH: " + str('file_uploads/' + wav_path.filename))
+    y, sr = librosa.load('file_uploads/' + wav_path.filename, sr=16000)
     return y
     
 def extract_input_features(audio_array, sampling_rate):
+    processor = AutoProcessor.from_pretrained('distil-whisper/distil-small.en')
     input_features = processor(
         audio_array,
         sampling_rate=sampling_rate,
@@ -47,21 +49,25 @@ def extract_input_features(audio_array, sampling_rate):
     ).input_features
     return input_features    
 
-async def process_audio(audio_snippets: List[UploadFile]):
+async def return_transcription(audio_snippets: List[UploadFile]):
     # Use Whisper to transcribe the audio snippets into 
     # more text snippets
     #init_model()
-
+    print("RETURNING TRANSCRIPTION")
     transcriptions = []
     for audio_file in audio_snippets:
         audio = convert_wav_to_array(audio_file)
         print(audio)
-        #input_features = extract_input_features(audio, sampling_rate=16000) 
-        #predicted_ids = pt_model.generate(input_features)
-        #transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
-        #transcriptions.insert(transcription[0])
-
-    return transcriptions
+        input_features = extract_input_features(audio, sampling_rate=16000) 
+        # if not pt_model:s
+        model_id = "distil-whisper/distil-small.en"
+        pt_model = AutoModelForSpeechSeq2Seq.from_pretrained(model_id)
+        predicted_ids = pt_model.generate(input_features)
+        processor = AutoProcessor.from_pretrained('distil-whisper/distil-small.en')
+        transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
+        transcriptions.append(transcription[0])
+    
+    return transcriptions[0]
 
 
 

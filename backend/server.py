@@ -6,13 +6,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from apis.openai_api import inspo_generation
-from apis.whisper_api import process_audio
+from apis.whisper_api import return_transcription
 
 # activate the virtual environment: .venv\Scripts\Activate.ps1
 # run the server: python -m uvicorn server:app --reload
 
 app = FastAPI()
-
 # Load environment variables from the .env file (if present)
 load_dotenv()
 
@@ -27,6 +26,9 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+
 
 app.snippets = []
 
@@ -44,16 +46,26 @@ async def process_query(json_file):
     audio_snippets = query['audio_snippets']
     print(audio_snippets)
     transcribed_audio = []
-    transcribed_audio = process_audio(audio_snippets)
+    # transcribed_audio = await process_audio(audio_snippets)
     
     # Merge the text snippets and the transcribed audio snippets
     # into a single list of snippets
     app.snippets = text_snippets + transcribed_audio
 
-async def process_audio(audio_snippets: List[str]):
-    # Use Whisper to transcribe the audio snippets into 
-    # more text snippets
-    pass
+@app.post('/uploadFile')
+async def process_audio(file_upload: UploadFile):
+    print("PROCESSING")
+    data = await file_upload.read()
+    save_to = "file_uploads/" + file_upload.filename
+    with open(save_to, 'wb') as f:
+        f.write(data)
+    ml_output = await return_transcription([file_upload])
+    print("ML OUTPUT")
+    print(ml_output)
+    return {"output": ml_output}
+
+# @app.post("/api/transcribe")
+# async def transcribe_audio(file: UploadFile = File(...)):
 
 @app.post("/brainstorm")
 async def run_brainstorm(request: Request):

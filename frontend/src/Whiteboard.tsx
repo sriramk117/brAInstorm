@@ -15,8 +15,8 @@ export interface Element {
 
 const menuXOffset = -10
 const menuYOffset = -8
-
 export default function Whiteboard() {
+    // const [file, setFile] = useState<Blob | null>(null);
     const [mode, setMode] = useState<'main'|'ai'>('main')
     const [results, setResults] = useState<string>('')
     const [elements, setElements] = useState<Element[]>([])
@@ -114,10 +114,11 @@ export default function Whiteboard() {
         document.getElementById('text-input')!.blur()
     }
 
-    const addAudio = (blob: Blob) => {
+    const addAudio = async (blob: Blob) => {
+        console.log("ADDING AUDIO")
         const whiteboard = whiteboardRef.current
         if (!whiteboard) return
-
+        let id = Date.now().toString()
         const rect = whiteboard.getBoundingClientRect()
         setElements([...elements, {
             type: 'audio',
@@ -126,6 +127,60 @@ export default function Whiteboard() {
             y: (Math.random()*(rect.height*.6))+(rect.height*.1),
             id: Date.now().toString()
         }])
+        console.log("TRYING TO WRITE FILE")
+        const FFmpeg = await import('@ffmpeg/ffmpeg')
+        const ffmpeg = FFmpeg.createFFmpeg({ log: false })
+        await ffmpeg.load()
+        
+        
+        ffmpeg.FS(
+            'writeFile',
+            `${id}.webm`,
+            new Uint8Array(await blob.arrayBuffer())
+        );
+    
+        // Run FFmpeg command to convert the file to WAV format
+        await ffmpeg.run('-i', `${id}.webm`, `${id}.wav`);
+    
+        // Read the output WAV file from FFmpeg's filesystem
+        const outputData = ffmpeg.FS('readFile', `${id}.wav`);
+        console.log("READ FILE")
+
+
+
+        // Create a Blob from the output data
+        const outputBlob = new Blob([outputData.buffer], {
+            type: 'audio/wav',
+        });
+        const formData = new FormData();
+        formData.append('file_upload', outputBlob, `${id}.wav`);
+
+        try {
+            const endpoint = "http://127.0.0.1:8000/uploadFile"
+            const response = await fetch(endpoint, {
+                method: "POST",
+                body: formData
+            });
+            if (response.ok){
+                response.json().then(value => console.log(value))
+                setElements([...elements, {
+                    type: 'audio',
+                    content: blob,
+                    x: (Math.random()*(rect.width*0.8))+(rect.width*.1),
+                    y: (Math.random()*(rect.height*.6))+(rect.height*.1),
+                    id: Date.now().toString()
+                }])
+                // console.log(response.json)
+            }
+            else{
+                console.log("FAILED")
+            }
+            
+        } catch(error) {
+            console.error();
+        }
+
+        //convert blob to wav
     }
 
     const removeItem = () => {
