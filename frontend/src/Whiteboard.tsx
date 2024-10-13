@@ -61,7 +61,11 @@ export default function Whiteboard() {
             })
         )
 
-        alert(JSON.stringify(obj))
+        const url = 'http://127.0.0.1:8000/brainstorm'
+        fetch(url, {
+            method: 'POST',
+            body: JSON.stringify(obj)
+        }).then(response => response.json()).then(data => console.log(data))
     }
     
     const createNewItem = (e: React.MouseEvent<HTMLDivElement>) => {
