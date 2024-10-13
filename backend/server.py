@@ -1,6 +1,6 @@
 import os
 import json
-from fastapi import FastAPI, UploadFile, File
+from fastapi import FastAPI, UploadFile, File, Request
 from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
@@ -54,10 +54,11 @@ async def process_audio(audio_snippets: List[str]):
     pass
 
 @app.post("/brainstorm")
-async def run_brainstorm(json_file):
+async def run_brainstorm(request: Request):
     # Process the json file from the clien as a list of text snippets
     # and audio snippets
-    await process_query(json_file=json_file)
+    query = await request.json()
+    await process_query(json_file=query)
     
     # Generate inspiration based on the text snippets
     response_json = await inspo_generation(app.snippets)
