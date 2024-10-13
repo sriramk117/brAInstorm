@@ -3,6 +3,7 @@ import './Whiteboard.css'
 import Item from './Item'
 import { AudioRecorder } from 'react-audio-voice-recorder'
 import { Rnd } from 'react-rnd'
+import Markdown from 'react-markdown'
 
 export interface Element {
     type: 'text' | 'audio'
@@ -16,6 +17,8 @@ const menuXOffset = -10
 const menuYOffset = -8
 
 export default function Whiteboard() {
+    const [mode, setMode] = useState<'main'|'ai'>('main')
+    const [results, setResults] = useState<string>('')
     const [elements, setElements] = useState<Element[]>([])
     const [selectedId, setSelectedId] = useState<string | null>(null)
     const [menuPos, setMenuPos] = useState<{ x: number, y: number } | null>(null)
@@ -62,13 +65,19 @@ export default function Whiteboard() {
         )
 
         const url = 'http://127.0.0.1:8000/brainstorm'
-        fetch(url, {
+        await fetch(url, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json'
             },
             body: JSON.stringify(obj)
-        }).then(response => response.json()).then(data => console.log(data))
+        })
+            .then(response => response.json())
+            .then(data => {
+                console.log(JSON.parse(data).response)
+                setResults(JSON.parse(data).response)
+            })
+        setMode('ai')
     }
     
     const createNewItem = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -162,111 +171,121 @@ export default function Whiteboard() {
         }
     }, [])
 
+    console.log(results)
+
     return (
         <>
-            <form onSubmit={addText}>
-                <div id='input-bar'>
-                    <input
-                        type='text'
-                        id='text-input'
-                        name='text-input'
-                        placeholder={'What\'s on your mind?'}
-                        value={inputText}
-                        onChange={e => setInputText(e.target.value)}
-                        autoFocus
-                    />
-                    <div id='audio-input'>
-                        <AudioRecorder
-                            onRecordingComplete={addAudio}
+            {mode === 'main' ? <>
+                <form onSubmit={addText}>
+                    <div id='input-bar'>
+                        <input
+                            type='text'
+                            id='text-input'
+                            name='text-input'
+                            placeholder={'What\'s on your mind?'}
+                            value={inputText}
+                            onChange={e => setInputText(e.target.value)}
+                            autoFocus
                         />
-                    </div>
-                </div>
-            </form>
-            <div
-                id='whiteboard'
-                ref={whiteboardRef}
-                onDoubleClick={createNewItem}
-            >
-                {elements.length > 0 ?
-                    <div id='submit' onClick={submitData}>Generate!</div> :
-                    <div id='help-message'>{'Type in the above box or\ndouble-click to create a new thought.'}</div>
-                }
-                {elements.filter(e => e.type === 'text').map(e => (
-                    <Item
-                        key={e.id}
-                        e={e}
-                        onDrag={(_, d) => {
-                            if (selectedId === e.id && menuPos) {
-                                setMenuPos({
-                                    x: menuPos.x + d.deltaX,
-                                    y: menuPos.y + d.deltaY
-                                })
-                            }
-                        }}
-                        onResize={(_, __, element, ___, ____) => {
-                            if (selectedId === e.id && menuPos) {
-                                const rect = element.getBoundingClientRect()
-                                setMenuPos({
-                                    x: rect.right + menuXOffset,
-                                    y: rect.top + menuYOffset
-                                })
-                            }
-                        }}
-                        attachMenu={attachMenu}
-                        child={<>{e.content}</>}
-                    />
-                ))}
-                {elements.filter(e => e.type === 'audio').map(e => (
-                    <Rnd
-                        id={e.id}
-                        key={e.id}
-                        className='item_box audio'
-                        default={{
-                            x: e.x - 75,
-                            y: e.y - 50,
-                            width: 150,
-                            height: 100,
-                        }}
-                        onDrag={(_, d) => {
-                            if (selectedId === e.id && menuPos) {
-                                setMenuPos({
-                                    x: menuPos.x + d.deltaX,
-                                    y: menuPos.y + d.deltaY
-                                })
-                            }
-                        }}
-                        onResize={(_, __, element, ___, ____) => {
-                            if (selectedId === e.id && menuPos) {
-                                const rect = element.getBoundingClientRect()
-                                setMenuPos({
-                                    x: rect.right + menuXOffset,
-                                    y: rect.top + menuYOffset
-                                })
-                            }
-                        }}
-                    >
-                        <div onFocus={event => attachMenu(event, e.id)}>
-                            <audio
-                                src={URL.createObjectURL(e.content as Blob)}
-                                controls
+                        <div id='audio-input'>
+                            <AudioRecorder
+                                onRecordingComplete={addAudio}
                             />
                         </div>
-                    </Rnd>
-                ))}
-            </div>
-
-            {menuPos && selectedId && (
+                    </div>
+                </form>
                 <div
-                    id='text-menu'
-                    ref={menuRef}
-                    style={{
-                        left: menuPos.x,
-                        top: menuPos.y
-                    }}
-                    onClick={removeItem}
-                >x
+                    id='whiteboard'
+                    ref={whiteboardRef}
+                    onDoubleClick={createNewItem}
+                >
+                    {elements.length > 0 ?
+                        <div id='submit' onClick={submitData}>Generate!</div> :
+                        <div id='help-message'>{'Type in the above box or\ndouble-click to create a new thought.'}</div>
+                    }
+                    {elements.filter(e => e.type === 'text').map(e => (
+                        <Item
+                            key={e.id}
+                            e={e}
+                            onDrag={(_, d) => {
+                                if (selectedId === e.id && menuPos) {
+                                    setMenuPos({
+                                        x: menuPos.x + d.deltaX,
+                                        y: menuPos.y + d.deltaY
+                                    })
+                                }
+                            }}
+                            onResize={(_, __, element, ___, ____) => {
+                                if (selectedId === e.id && menuPos) {
+                                    const rect = element.getBoundingClientRect()
+                                    setMenuPos({
+                                        x: rect.right + menuXOffset,
+                                        y: rect.top + menuYOffset
+                                    })
+                                }
+                            }}
+                            attachMenu={attachMenu}
+                            child={<>{e.content}</>}
+                        />
+                    ))}
+                    {elements.filter(e => e.type === 'audio').map(e => (
+                        <Rnd
+                            id={e.id}
+                            key={e.id}
+                            className='item_box audio'
+                            default={{
+                                x: e.x - 75,
+                                y: e.y - 50,
+                                width: 150,
+                                height: 100,
+                            }}
+                            onDrag={(_, d) => {
+                                if (selectedId === e.id && menuPos) {
+                                    setMenuPos({
+                                        x: menuPos.x + d.deltaX,
+                                        y: menuPos.y + d.deltaY
+                                    })
+                                }
+                            }}
+                            onResize={(_, __, element, ___, ____) => {
+                                if (selectedId === e.id && menuPos) {
+                                    const rect = element.getBoundingClientRect()
+                                    setMenuPos({
+                                        x: rect.right + menuXOffset,
+                                        y: rect.top + menuYOffset
+                                    })
+                                }
+                            }}
+                        >
+                            <div onFocus={event => attachMenu(event, e.id)}>
+                                <audio
+                                    src={URL.createObjectURL(e.content as Blob)}
+                                    controls
+                                />
+                            </div>
+                        </Rnd>
+                    ))}
                 </div>
-            )}
+
+                {menuPos && selectedId && (
+                    <div
+                        id='text-menu'
+                        ref={menuRef}
+                        style={{
+                            left: menuPos.x,
+                            top: menuPos.y
+                        }}
+                        onClick={removeItem}
+                    >x
+                    </div>
+                )}
+                </> : <>
+                    <div id='back' onClick={() => setMode('main')}>Go Back</div>
+                    <div id='results'>
+                        <Markdown>{results}</Markdown>
+                    </div>
+                </>
+            }
         </>
     )
 }
