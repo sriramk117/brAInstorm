@@ -1,11 +1,12 @@
-import { FormEvent, useEffect, useRef, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import './Whiteboard.css'
-import Item from "./Item"
-import { AudioRecorder } from "react-audio-voice-recorder"
+import Item from './Item'
+import { AudioRecorder } from 'react-audio-voice-recorder'
+import { Rnd } from 'react-rnd'
 
 export interface Element {
     type: 'text' | 'audio'
-    content: string
+    content: string | Blob
     x: number
     y: number
     id: string
@@ -23,8 +24,43 @@ export default function Whiteboard() {
     const menuRef = useRef<HTMLDivElement>(null)
     const activeBox = useRef<HTMLDivElement | null>(null)
 
-    const submitData = () => {
-        const obj = {"text_snippets": elements.map(e => ({'text': document.getElementById(e.id)!.textContent}))}
+    const submitData = async () => {
+        const obj: {'text_snippets': {text: string}[], 'audio_snippets': string[]} = {
+            'text_snippets': elements.filter(e => e.type === 'text').map(e => ({'text': document.getElementById(e.id)!.textContent!})),
+            'audio_snippets': []
+        }
+
+        const reader = new FileReader()
+        const FFmpeg = await import('@ffmpeg/ffmpeg')
+        const ffmpeg = FFmpeg.createFFmpeg({ log: false })
+        await ffmpeg.load()
+
+        await Promise.all(
+            elements.filter(e => e.type === 'audio').map(async e => {
+                ffmpeg.FS(
+                    'writeFile',
+                    `${e.id}.webm`,
+                    new Uint8Array(await (e.content as Blob).arrayBuffer())
+                )
+    
+                await ffmpeg.run('-i', `${e.id}.webm`, `${e.id}.wav`)
+    
+                const outputData = ffmpeg.FS('readFile', `${e.id}.wav`)
+                const outputBlob = new Blob([outputData.buffer], {
+                    type: `audio/wav`,
+                })
+    
+                reader.readAsDataURL(outputBlob)
+                await new Promise<void>(resolve => {
+                    reader.onloadend = async () => {
+                        const b64data = (reader.result! as string).split(',')[1]
+                        obj.audio_snippets.push(b64data)
+                        resolve()
+                    }
+                })
+            })
+        )
+
         alert(JSON.stringify(obj))
     }
     
@@ -54,7 +90,7 @@ export default function Whiteboard() {
         setElements([...elements, {
             type: 'text',
             content: inputText,
-            x: (Math.random()*(rect.width*0.9)),
+            x: (Math.random()*(rect.width*0.8))+(rect.width*.1),
             y: (Math.random()*(rect.height*.6))+(rect.height*.1),
             id: Date.now().toString()
         }])
@@ -69,8 +105,8 @@ export default function Whiteboard() {
         const rect = whiteboard.getBoundingClientRect()
         setElements([...elements, {
             type: 'audio',
-            content: URL.createObjectURL(blob),
-            x: (Math.random()*(rect.width*0.9)),
+            content: blob,
+            x: (Math.random()*(rect.width*0.8))+(rect.width*.1),
             y: (Math.random()*(rect.height*.6))+(rect.height*.1),
             id: Date.now().toString()
         }])
@@ -113,9 +149,9 @@ export default function Whiteboard() {
             }
         }
 
-        document.addEventListener("mousedown", handleClickOutside)
+        document.addEventListener('mousedown', handleClickOutside)
         return () => {
-            document.removeEventListener("mousedown", handleClickOutside)
+            document.removeEventListener('mousedown', handleClickOutside)
         }
     }, [])
 
@@ -173,8 +209,16 @@ export default function Whiteboard() {
                     />
                 ))}
                 {elements.filter(e => e.type === 'audio').map(e => (
-                    <Item
-                        e={e}
+                    <Rnd
+                        id={e.id}
+                        key={e.id}
+                        className='item_box audio'
+                        default={{
+                            x: e.x - 75,
+                            y: e.y - 50,
+                            width: 150,
+                            height: 100,
+                        }}
                         onDrag={(_, d) => {
                             if (selectedId === e.id && menuPos) {
                                 setMenuPos({
@@ -192,14 +236,14 @@ export default function Whiteboard() {
                                 })
                             }
                         }}
-                        attachMenu={attachMenu}
-                        child={
+                    >
+                        <div onFocus={event => attachMenu(event, e.id)}>
                             <audio
-                                src={e.content}
+                                src={URL.createObjectURL(e.content as Blob)}
                                 controls
                             />
-                        }
-                    />
+                        </div>
+                    </Rnd>
                 ))}
             </div>
 

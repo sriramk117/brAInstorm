@@ -72,6 +72,10 @@ form {
     min-height: 40px;
 }
 
+.item_box.audio {
+    border: none;
+}
+
 .content {
     min-height: 100%;
     padding: 0 8px;
