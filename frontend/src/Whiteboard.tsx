@@ -16,7 +16,6 @@ export interface Element {
 const menuXOffset = -10
 const menuYOffset = -8
 export default function Whiteboard() {
-    // const [file, setFile] = useState<Blob | null>(null);
     const [mode, setMode] = useState<'main'|'ai'>('main')
     const [results, setResults] = useState<string>('')
     const [elements, setElements] = useState<Element[]>([])
@@ -28,43 +27,9 @@ export default function Whiteboard() {
     const activeBox = useRef<HTMLDivElement | null>(null)
 
     const submitData = async () => {
-        const obj: {'text_snippets': {text: string}[], 'audio_snippets': string[]} = {
-            'text_snippets': elements.filter(e => e.type === 'text').map(e => ({'text': document.getElementById(e.id)!.textContent!})),
-            'audio_snippets': elements.filter(e => e.type === 'audio').map(e => URL.createObjectURL(e.content as Blob))
+        const obj: {'text_snippets': {text: string}[]} = {
+            'text_snippets': elements.filter(e => e.type === 'text').map(e => ({'text': document.getElementById(e.id)!.textContent!}))
         }
-
-        // const reader = new FileReader()
-        // const FFmpeg = await import('@ffmpeg/ffmpeg')
-        // const ffmpeg = FFmpeg.createFFmpeg({ log: false })
-        // await ffmpeg.load()
-
-        // await Promise.all(
-        //     elements.filter(e => e.type === 'audio').map(async e => {
-        //         ffmpeg.FS(
-        //             'writeFile',
-        //             `${e.id}.webm`,
-        //             new Uint8Array(await (e.content as Blob).arrayBuffer())
-        //         )
-    
-        //         await ffmpeg.run('-i', `${e.id}.webm`, `${e.id}.wav`)
-    
-        //         const outputData = ffmpeg.FS('readFile', `${e.id}.wav`)
-        //         const outputBlob = new Blob([outputData.buffer], {
-        //             type: `audio/wav`,
-        //         })
-    
-        //         reader.readAsDataURL(outputBlob)
-        //         await new Promise<void>(resolve => {
-        //             reader.onloadend = async () => {
-        //                 const b64data = (reader.result! as string).split(',')[1]
-        //                 obj.audio_snippets.push(b64data)
-        //                 resolve()
-        //             }
-        //         })
-        //     })
-        // )
-
-        console.log(JSON.stringify(obj))
 
         const url = 'http://127.0.0.1:8000/brainstorm'
         await fetch(url, {
@@ -76,7 +41,6 @@ export default function Whiteboard() {
         })
             .then(response => response.json())
             .then(data => {
-                console.log(JSON.parse(data).response)
                 setResults(JSON.parse(data).response)
             })
         setMode('ai')
@@ -116,39 +80,50 @@ export default function Whiteboard() {
         document.getElementById('text-input')!.blur()
     }
 
+    const handleRecording = async (blob: Blob) => {
+        await addAudio(blob).then(e => transcribeAudio(blob, e!))
+    }
+
     const addAudio = async (blob: Blob) => {
-        console.log("ADDING AUDIO")
         const whiteboard = whiteboardRef.current
         if (!whiteboard) return
-        let id = Date.now().toString()
+
         const rect = whiteboard.getBoundingClientRect()
-        setElements([...elements, {
+
+        const audio: Element = {
             type: 'audio',
             content: blob,
             x: (Math.random()*(rect.width*0.8))+(rect.width*.1),
             y: (Math.random()*(rect.height*.6))+(rect.height*.1),
             id: Date.now().toString()
-        }])
-        console.log("TRYING TO WRITE FILE")
+        }
+
+        setElements([...elements, audio])
+
+        return audio;
+    }
+
+    const transcribeAudio = async (blob: Blob, audio: Element) => {
+        const whiteboard = whiteboardRef.current
+        if (!whiteboard) return
+
+        const id = Date.now().toString()
+
         const FFmpeg = await import('@ffmpeg/ffmpeg')
         const ffmpeg = FFmpeg.createFFmpeg({ log: false })
         await ffmpeg.load()
-        
         
         ffmpeg.FS(
             'writeFile',
             `${id}.webm`,
             new Uint8Array(await blob.arrayBuffer())
         );
-    
+
         // Run FFmpeg command to convert the file to WAV format
         await ffmpeg.run('-i', `${id}.webm`, `${id}.wav`);
     
         // Read the output WAV file from FFmpeg's filesystem
         const outputData = ffmpeg.FS('readFile', `${id}.wav`);
-        console.log("READ FILE")
-
-
 
         // Create a Blob from the output data
         const outputBlob = new Blob([outputData.buffer], {
@@ -165,24 +140,17 @@ export default function Whiteboard() {
             });
             if (response.ok){
                 response.json().then(value => 
-                setElements([...elements, {
+                setElements([...elements, audio, {
                     type: 'text',
                     content: value.output,
-                    x: (Math.random()*(rect.width*0.8))+(rect.width*.1),
-                    y: (Math.random()*(rect.height*.6))+(rect.height*.1) + 20,
+                    x: audio.x,
+                    y: audio.y + 150,
                     id: Date.now().toString()
                 }]))
-                // console.log(response.json)
             }
-            else{
-                console.log("FAILED")
-            }
-            
         } catch(error) {
             console.error();
-        } 
-
-        //convert blob to wav
+        }
     }
 
     const removeItem = () => {
@@ -228,8 +196,6 @@ export default function Whiteboard() {
         }
     }, [])
 
-    console.log(results)
-
     return (
         <>
             {mode === 'main' ? <>
@@ -246,7 +212,7 @@ export default function Whiteboard() {
                         />
                         <div id='audio-input'>
                             <AudioRecorder
-                                onRecordingComplete={addAudio}
+                                onRecordingComplete={handleRecording}
                             />
                         </div>
                     </div>

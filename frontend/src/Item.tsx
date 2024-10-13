@@ -15,10 +15,10 @@ export default function Item(props: {
             key={props.e.id}
             className='item_box'
             default={{
-                x: props.e.x - 75,
-                y: props.e.y - 50,
-                width: 150,
-                height: 100,
+                x: props.e.x - 100,
+                y: props.e.y - 75,
+                width: 200,
+                height: 150,
             }}
             onDrag={props.onDrag}
             onResize={props.onResize}
