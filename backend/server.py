@@ -8,7 +8,7 @@ from pydantic import BaseModel
 from apis.openai_api import inspo_generation
 
 # activate the virtual environment: .venv\Scripts\Activate.ps1
-# run the server: uvicorn server:app --reload
+# run the server: python -m uvicorn server:app --reload
 
 app = FastAPI()
 
@@ -21,7 +21,10 @@ origins = [
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,
+    allow_origins=["*"],
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
 
 app.snippets = []
@@ -29,9 +32,8 @@ app.snippets = []
 class Query(BaseModel):
     text: str
 
-async def process_query(json_file: UploadFile = File(...)):
-    file_contents = await json_file.read()
-    query = json.loads(file_contents)
+async def process_query(json_file):
+    query = json_file
 
     # Process the query
     print(query)
@@ -52,11 +54,11 @@ async def process_audio(audio_snippets: List[str]):
     pass
 
 @app.post("/brainstorm")
-async def run_brainstorm(json_file: UploadFile = File(...)):
+async def run_brainstorm(json_file):
     # Process the json file from the clien as a list of text snippets
     # and audio snippets
     await process_query(json_file=json_file)
-
+    
     # Generate inspiration based on the text snippets
     response_json = await inspo_generation(app.snippets)
     print(response_json)
