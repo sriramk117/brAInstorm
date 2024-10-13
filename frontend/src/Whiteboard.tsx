@@ -190,6 +190,7 @@ export default function Whiteboard() {
                 }
                 {elements.filter(e => e.type === 'text').map(e => (
                     <Item
+                        key={e.id}
                         e={e}
                         onDrag={(_, d) => {
                             if (selectedId === e.id && menuPos) {
