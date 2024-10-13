@@ -1,11 +1,13 @@
 import { DraggableData, Rnd } from "react-rnd";
 import { Element } from "./Whiteboard";
+import { ReactElement } from "react";
 
 export default function Item(props: {
         e: Element,
         onDrag: (_: any, d: DraggableData) => void
         onResize: (_: any, __: any, element: HTMLElement, ___: any, ____: any) => void
-        attachMenu: (e: React.FocusEvent<HTMLDivElement>, elementId: string) => void
+        attachMenu: (e: React.FocusEvent<HTMLDivElement>, elementId: string) => void,
+        child: ReactElement
 }) {
     return (
         <Rnd
@@ -27,7 +29,7 @@ export default function Item(props: {
                 suppressContentEditableWarning
                 onFocus={event => props.attachMenu(event, props.e.id)}
             >
-                {props.e.content}
+                {props.child}
             </div>
         </Rnd>
     );

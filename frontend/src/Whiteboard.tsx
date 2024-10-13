@@ -1,10 +1,10 @@
 import { FormEvent, useEffect, useRef, useState } from "react"
-import micIcon from './assets/mic.svg'
 import './Whiteboard.css'
 import Item from "./Item"
+import { AudioRecorder } from "react-audio-voice-recorder"
 
 export interface Element {
-    type: 'text' | 'image'
+    type: 'text' | 'audio'
     content: string
     x: number
     y: number
@@ -60,6 +60,20 @@ export default function Whiteboard() {
         }])
         setInputText('')
         document.getElementById('text-input')!.blur()
+    }
+
+    const addAudio = (blob: Blob) => {
+        const whiteboard = whiteboardRef.current
+        if (!whiteboard) return
+
+        const rect = whiteboard.getBoundingClientRect()
+        setElements([...elements, {
+            type: 'audio',
+            content: URL.createObjectURL(blob),
+            x: (Math.random()*(rect.width*0.9)),
+            y: (Math.random()*(rect.height*.6))+(rect.height*.1),
+            id: Date.now().toString()
+        }])
     }
 
     const removeItem = () => {
@@ -118,10 +132,11 @@ export default function Whiteboard() {
                         onChange={e => setInputText(e.target.value)}
                         autoFocus
                     />
-                    <img
-                        id='audio-input'
-                        src={micIcon}
-                    />
+                    <div id='audio-input'>
+                        <AudioRecorder
+                            onRecordingComplete={addAudio}
+                        />
+                    </div>
                 </div>
             </form>
             <div
@@ -133,7 +148,7 @@ export default function Whiteboard() {
                     <div id='submit' onClick={submitData}>Generate!</div> :
                     <div id='help-message'>{'Type in the above box or\ndouble-click to create a new thought.'}</div>
                 }
-                {elements.map(e => (
+                {elements.filter(e => e.type === 'text').map(e => (
                     <Item
                         e={e}
                         onDrag={(_, d) => {
@@ -154,6 +169,36 @@ export default function Whiteboard() {
                             }
                         }}
                         attachMenu={attachMenu}
+                        child={<>{e.content}</>}
+                    />
+                ))}
+                {elements.filter(e => e.type === 'audio').map(e => (
+                    <Item
+                        e={e}
+                        onDrag={(_, d) => {
+                            if (selectedId === e.id && menuPos) {
+                                setMenuPos({
+                                    x: menuPos.x + d.deltaX,
+                                    y: menuPos.y + d.deltaY
+                                })
+                            }
+                        }}
+                        onResize={(_, __, element, ___, ____) => {
+                            if (selectedId === e.id && menuPos) {
+                                const rect = element.getBoundingClientRect()
+                                setMenuPos({
+                                    x: rect.right + menuXOffset,
+                                    y: rect.top + menuYOffset
+                                })
+                            }
+                        }}
+                        attachMenu={attachMenu}
+                        child={
+                            <audio
+                                src={e.content}
+                                controls
+                            />
+                        }
                     />
                 ))}
             </div>

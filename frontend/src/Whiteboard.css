@@ -24,11 +24,8 @@ form {
 
 #audio-input {
     z-index: 2147483647;
-    height: 30px;
     margin-left: 16px;
-    border: 2px solid black;
     padding: 4px;
-    border-radius: 64px;
 }
 
 #audio-input:hover {
