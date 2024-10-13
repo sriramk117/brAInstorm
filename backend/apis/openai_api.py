@@ -35,6 +35,9 @@ async def inspo_generation(text_snippets: List[str]):
         max_tokens=500          
     )
 
-    parsed_response = json.dumps(response, indent=4)
+    response_dict = {"response": response.choices[0].message.content}
+
+    parsed_response = json.dumps(response_dict, indent=4)
+    #print(parsed_response)
     
-    return response.choices[0].text.strip()
+    return parsed_response

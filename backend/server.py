@@ -36,7 +36,7 @@ async def process_query(json_file: UploadFile = File(...)):
     # Process the query
     print(query)
     text_snippets = query['text_snippets']
-    print(app.text_snippets)
+    print(text_snippets)
 
     audio_snippets = query['audio_snippets']
     transcribed_audio = []
@@ -51,13 +51,16 @@ async def process_audio(audio_snippets: List[str]):
     # more text snippets
     pass
 
-async def run_brainstorm():
+@app.post("/brainstorm")
+async def run_brainstorm(json_file: UploadFile = File(...)):
     # Process the json file from the clien as a list of text snippets
     # and audio snippets
-    await process_query()
+    await process_query(json_file=json_file)
 
     # Generate inspiration based on the text snippets
     response_json = await inspo_generation(app.snippets)
+    print(response_json)
+    return response_json
 
 @app.get("/")
 async def root():
