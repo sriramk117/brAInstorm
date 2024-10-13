@@ -31,8 +31,7 @@ async def inspo_generation(text_snippets: List[str]):
 
     response = client.chat.completions.create(
         model="llama-3.1-sonar-small-128k-online",
-        messages=messages, 
-        max_tokens=500          
+        messages=messages,         
     )
 
     response_dict = {"response": response.choices[0].message.content}
