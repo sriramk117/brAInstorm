@@ -5,6 +5,7 @@ from typing import List
 from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pydantic import BaseModel
+from apis.openai_api import inspo_generation
 
 # activate the virtual environment: .venv\Scripts\Activate.ps1
 # run the server: uvicorn server:app --reload
@@ -23,31 +24,40 @@ app.add_middleware(
     allow_origins=origins,
 )
 
-app.text_snippets = []
-app.audio_snippets = []
+app.snippets = []
 
 class Query(BaseModel):
     text: str
 
-@app.post("/process_query")
 async def process_query(json_file: UploadFile = File(...)):
     file_contents = await json_file.read()
     query = json.loads(file_contents)
 
     # Process the query
     print(query)
-    app.text_snippets = query['text_snippets']
+    text_snippets = query['text_snippets']
     print(app.text_snippets)
 
-    app.audio_snippets = query['audio_snippets']
-    process_audio(app.audio_snippets)
-    print(app.audio_snippets)
-    return {"message": "Query processed successfully"}
+    audio_snippets = query['audio_snippets']
+    transcribed_audio = []
+    # transcribed_audio = process_audio(app.audio_snippets)
+    
+    # Merge the text snippets and the transcribed audio snippets
+    # into a single list of snippets
+    app.snippets = text_snippets + transcribed_audio
 
 async def process_audio(audio_snippets: List[str]):
     # Use Whisper to transcribe the audio snippets into 
     # more text snippets
     pass
+
+async def run_brainstorm():
+    # Process the json file from the clien as a list of text snippets
+    # and audio snippets
+    await process_query()
+
+    # Generate inspiration based on the text snippets
+    response_json = await inspo_generation(app.snippets)
 
 @app.get("/")
 async def root():
