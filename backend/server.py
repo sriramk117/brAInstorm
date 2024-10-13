@@ -6,6 +6,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 from pydantic import BaseModel
 from apis.openai_api import inspo_generation
+from apis.whisper_api import process_audio
 
 # activate the virtual environment: .venv\Scripts\Activate.ps1
 # run the server: python -m uvicorn server:app --reload
@@ -41,8 +42,9 @@ async def process_query(json_file):
     print(text_snippets)
 
     audio_snippets = query['audio_snippets']
+    print(audio_snippets)
     transcribed_audio = []
-    # transcribed_audio = process_audio(app.audio_snippets)
+    transcribed_audio = process_audio(audio_snippets)
     
     # Merge the text snippets and the transcribed audio snippets
     # into a single list of snippets

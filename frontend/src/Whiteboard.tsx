@@ -27,39 +27,39 @@ export default function Whiteboard() {
     const submitData = async () => {
         const obj: {'text_snippets': {text: string}[], 'audio_snippets': string[]} = {
             'text_snippets': elements.filter(e => e.type === 'text').map(e => ({'text': document.getElementById(e.id)!.textContent!})),
-            'audio_snippets': []
+            'audio_snippets': elements.filter(e => e.type === 'audio').map(e => URL.createObjectURL(e.content as Blob))
         }
 
-        const reader = new FileReader()
-        const FFmpeg = await import('@ffmpeg/ffmpeg')
-        const ffmpeg = FFmpeg.createFFmpeg({ log: false })
-        await ffmpeg.load()
+        // const reader = new FileReader()
+        // const FFmpeg = await import('@ffmpeg/ffmpeg')
+        // const ffmpeg = FFmpeg.createFFmpeg({ log: false })
+        // await ffmpeg.load()
 
-        await Promise.all(
-            elements.filter(e => e.type === 'audio').map(async e => {
-                ffmpeg.FS(
-                    'writeFile',
-                    `${e.id}.webm`,
-                    new Uint8Array(await (e.content as Blob).arrayBuffer())
-                )
+        // await Promise.all(
+        //     elements.filter(e => e.type === 'audio').map(async e => {
+        //         ffmpeg.FS(
+        //             'writeFile',
+        //             `${e.id}.webm`,
+        //             new Uint8Array(await (e.content as Blob).arrayBuffer())
+        //         )
     
-                await ffmpeg.run('-i', `${e.id}.webm`, `${e.id}.wav`)
+        //         await ffmpeg.run('-i', `${e.id}.webm`, `${e.id}.wav`)
     
-                const outputData = ffmpeg.FS('readFile', `${e.id}.wav`)
-                const outputBlob = new Blob([outputData.buffer], {
-                    type: `audio/wav`,
-                })
+        //         const outputData = ffmpeg.FS('readFile', `${e.id}.wav`)
+        //         const outputBlob = new Blob([outputData.buffer], {
+        //             type: `audio/wav`,
+        //         })
     
-                reader.readAsDataURL(outputBlob)
-                await new Promise<void>(resolve => {
-                    reader.onloadend = async () => {
-                        const b64data = (reader.result! as string).split(',')[1]
-                        obj.audio_snippets.push(b64data)
-                        resolve()
-                    }
-                })
-            })
-        )
+        //         reader.readAsDataURL(outputBlob)
+        //         await new Promise<void>(resolve => {
+        //             reader.onloadend = async () => {
+        //                 const b64data = (reader.result! as string).split(',')[1]
+        //                 obj.audio_snippets.push(b64data)
+        //                 resolve()
+        //             }
+        //         })
+        //     })
+        // )
 
         const url = 'http://127.0.0.1:8000/brainstorm'
         fetch(url, {

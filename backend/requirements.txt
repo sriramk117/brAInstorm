@@ -1,3 +1,6 @@
 fastapi[standard]
 openai
 python-dotenv
+librosa
+numpy
+transformers

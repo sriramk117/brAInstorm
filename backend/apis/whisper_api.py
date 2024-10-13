@@ -2,6 +2,7 @@ import librosa
 from typing import List
 from transformers import AutoProcessor, AutoModelForSpeechSeq2Seq
 import numpy as np
+from fastapi import UploadFile
 
 
 model_ids = {
@@ -46,22 +47,21 @@ def extract_input_features(audio_array, sampling_rate):
     ).input_features
     return input_features    
 
-async def process_audio(audio_snippets: List[str]):
+async def process_audio(audio_snippets: List[UploadFile]):
     # Use Whisper to transcribe the audio snippets into 
     # more text snippets
-    
-    init_model()
+    #init_model()
 
-    audio = "audio_files/audio sample.wav"
-    audio = convert_wav_to_array(audio)
+    transcriptions = []
+    for audio_file in audio_snippets:
+        audio = convert_wav_to_array(audio_file)
+        print(audio)
+        #input_features = extract_input_features(audio, sampling_rate=16000) 
+        #predicted_ids = pt_model.generate(input_features)
+        #transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
+        #transcriptions.insert(transcription[0])
 
-    # print("DONE CONVERTING")
-    input_features = extract_input_features(audio, sampling_rate=16000) 
-
-    predicted_ids = pt_model.generate(input_features)
-    transcription = processor.batch_decode(predicted_ids, skip_special_tokens=True)
-    print(f"Result: {transcription[0]}")
-    return transcription[0]
+    return transcriptions
 
 
 
