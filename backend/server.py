@@ -42,15 +42,10 @@ async def process_query(json_file):
     print(query)
     text_snippets = query['text_snippets']
     print(text_snippets)
-
-    audio_snippets = query['audio_snippets']
-    print(audio_snippets)
-    transcribed_audio = []
-    # transcribed_audio = await process_audio(audio_snippets)
     
     # Merge the text snippets and the transcribed audio snippets
     # into a single list of snippets
-    app.snippets = text_snippets + transcribed_audio
+    app.snippets = text_snippets
 
 @app.post('/uploadFile')
 async def process_audio(file_upload: UploadFile):
