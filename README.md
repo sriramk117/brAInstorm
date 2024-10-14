@@ -1,4 +1,4 @@
-## DubHacks'24 Submission: brAInstorm
+## brAInstorm (DubHacks '24 Intel AI Track Winner)
 
 ## Inspiration
 As regular book, article, and blog post readers as well as affluent writers, we recognized the inherently messy process to brainstorm eloquent, coherent, and impactful ideas. To streamline this messy process and give writers a space to think and compose ideas, we leveraged generative AI tools and full-stack web development to create brAInstorm.
