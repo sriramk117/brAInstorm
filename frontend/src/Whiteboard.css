@@ -32,24 +32,6 @@ form {
     cursor: pointer;
 }
 
-#submit {
-    position: absolute;
-    z-index: 2147483647;
-    left: 50%;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    background-color: green;
-    color: white;
-    font-size: 32px;
-    padding: 8px 32px;
-    border-radius: 32px;
-}
-
-#submit:hover {
-    cursor: pointer;
-    filter: brightness(0.9);
-}
-
 #help-message {
     position: absolute;
     left: 50%;

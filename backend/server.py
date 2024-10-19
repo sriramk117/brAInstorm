@@ -27,9 +27,6 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-
-
-
 app.snippets = []
 
 class Query(BaseModel):
@@ -42,9 +39,7 @@ async def process_query(json_file):
     print(query)
     text_snippets = query['text_snippets']
     print(text_snippets)
-    
-    # Merge the text snippets and the transcribed audio snippets
-    # into a single list of snippets
+
     app.snippets = text_snippets
 
 @app.post('/uploadFile')
@@ -64,8 +59,7 @@ async def process_audio(file_upload: UploadFile):
 
 @app.post("/brainstorm")
 async def run_brainstorm(request: Request):
-    # Process the json file from the clien as a list of text snippets
-    # and audio snippets
+    # Process the json file from the client as a list of text snippets
     query = await request.json()
     await process_query(json_file=query)
     

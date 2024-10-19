@@ -4,3 +4,4 @@ python-dotenv
 librosa
 numpy
 transformers
+torch

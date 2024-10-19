@@ -4,6 +4,7 @@ import Item from './Item'
 import { AudioRecorder } from 'react-audio-voice-recorder'
 import { Rnd } from 'react-rnd'
 import Markdown from 'react-markdown'
+import Submit from './Submit'
 
 export interface Element {
     type: 'text' | 'audio'
@@ -25,26 +26,6 @@ export default function Whiteboard() {
     const whiteboardRef = useRef<HTMLDivElement>(null)
     const menuRef = useRef<HTMLDivElement>(null)
     const activeBox = useRef<HTMLDivElement | null>(null)
-
-    const submitData = async () => {
-        const obj: {'text_snippets': {text: string}[]} = {
-            'text_snippets': elements.filter(e => e.type === 'text').map(e => ({'text': document.getElementById(e.id)!.textContent!}))
-        }
-
-        const url = 'http://127.0.0.1:8000/brainstorm'
-        await fetch(url, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json'
-            },
-            body: JSON.stringify(obj)
-        })
-            .then(response => response.json())
-            .then(data => {
-                setResults(JSON.parse(data).response)
-            })
-        setMode('ai')
-    }
     
     const createNewItem = (e: React.MouseEvent<HTMLDivElement>) => {
         const whiteboard = whiteboardRef.current
@@ -223,7 +204,7 @@ export default function Whiteboard() {
                     onDoubleClick={createNewItem}
                 >
                     {elements.length > 0 ?
-                        <div id='submit' onClick={submitData}>Generate!</div> :
+                        <Submit elements={elements} setResults={setResults} setMode={setMode} /> :
                         <div id='help-message'>{'Type in the above box or\ndouble-click to create a new thought.'}</div>
                     }
                     {elements.filter(e => e.type === 'text').map(e => (
