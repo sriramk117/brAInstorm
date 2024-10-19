@@ -19,21 +19,16 @@ Integrating Speech-2-Text Models into our fullstack Web Application proved chall
 Converting Quantized LLMs into a format that fit with our fullstack application proved challenging, ultimately we figured out that we needed both bin and xml weights for the model after scouring research papers and other usecases. 
 
 ## Accomplishments that we're proud of
-We are proud of successfully integrating language models we were not initially familiar with, for example, the multi-modal language model Whisper.
-
-We are proud of optimizing models to perform faster using Intel AI PCs, and stringing frontend and backend components in a seamless manner. 
+We are proud of successfully integrating language models we were not initially familiar with, for example, the multi-modal language model Whisper. Additionally, we are proud of figuring out how to optimize models to perform faster using Intel AI PCs, and string frontend and backend components in a seamless manner. 
 
 Being able to accomplish all of these tasks within the past 24 hours was a eye-opening experience that we thoroughly enjoyed.
 
 ## What we learned
-We learned techniques like Post-Training Quantization, conversion to ONNX and OpenVINO formats for optimized performance on. 
+We learned a plethora of ML techniques including Post-Training Quantization, conversion to ONNX, and utilizing OpenVINO formats for optimized performance. Concepts like performing model inference on remote computers and writing RAG pipelines were concepts we built a rich experience in through this hackathon.
 
-We learned how to use Remote Tunnels to SSH into AI Tyber Cloud on VSCode. 
-Perform model inference and fine-tuning on LLM models like Whisper and RAG. 
-We also learned how to configure Fast-API endpoints to pass data between the frontend and backend. 
-
+On top of ML concepts, we had a lot of fun learning how to use Remote Tunnels to SSH into AI Tyber Cloud on VSCode. We also learned how to configure Fast-API endpoints to pass data between the frontend and backend. 
 
 ## What's next for brAInstorm
-One of the many things we would like to implement in the future is image input and image generation to support a wider audience and be useful for more applications. We hope to implement stable diffusion models into our brAInstorm app to create idea-inspiring visuals for plot points, scene visualizations, or etc. to help bring ideas to life.
+One of the many things we would like to implement in the future is image input and image generation to support a wider audience and be useful for more applications. We hope to implement stable diffusion models into our brAInstorm app to create idea-inspiring visuals for plot points, scene visualizations, and etc. to truly help bring ideas to life.
 
-We also believe that writing is a collaborative process. We would love to turn this into a collaborative app where many writers working together can contribute to a single brainstorming whiteboard simultaneously.
+We also believe that writing is a collaborative process. We would love to turn this into a collaborative app where many creatives can work together and contribute to a single brainstorming whiteboard simultaneously.
