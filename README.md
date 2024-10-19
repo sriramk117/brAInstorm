@@ -1,7 +1,7 @@
 ## brAInstorm (DubHacks '24 Intel AI Track Winner)
 
 ## Inspiration
-As regular book, article, and blog post readers as well as affluent writers, we recognized the inherently messy process to brainstorm eloquent, coherent, and impactful ideas. To streamline this messy process and give writers a space to think and compose ideas, we leveraged generative AI tools and full-stack web development to create brAInstorm.
+As regular book, article, and blog post readers as well as occasional writers, we recognized the inherently messy process to brainstorm eloquent, coherent, and impactful ideas. To streamline this messy process and give writers a space to think and compose ideas, we leveraged generative AI tools and full-stack web development to create brAInstorm.
 
 ## What it does
 Our full-stack app brAInstorm allows users to add snippets of text and audio onto a blank whiteboard. We then use Whisper to process audio snippets and Perplexity AI to generate idea summaries and inspiration bits to aid the challenging and unorganized process of brainstorming. 
